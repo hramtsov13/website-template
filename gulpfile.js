@@ -12,8 +12,6 @@ import autoprefixer from 'autoprefixer';
 import cssnano from 'cssnano';
 import browserSync from 'browser-sync';
 import del from 'del';
-import tailwindcss from 'tailwindcss';
-import tailwindConfig from './tailwind.config.cjs';
 
 const paths = {
   css: {
@@ -53,15 +51,15 @@ const compileScript = () => {
 
 const compileStyle = () => {
   const sass = gulpSass(dartSass);
-  var plugins = [tailwindcss(tailwindConfig), autoprefixer(), cssnano()];
+  var plugins = [autoprefixer(), cssnano()];
 
   return gulp
     .src(['app/src/scss/styles.scss'])
     .pipe(sourcemaps.init())
     .pipe(sass())
     .on('error', sass.logError)
-    .pipe(concat('style.min.css'))
     .pipe(postcss(plugins))
+    .pipe(concat('style.min.css'))
     .pipe(sourcemaps.write())
     .pipe(gulp.dest('app/src/css'))
     .pipe(browserSync.stream());
