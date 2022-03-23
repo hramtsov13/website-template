@@ -15,6 +15,10 @@ node_modules/
 # Mac/OSX
 .DS_Store
 
+# Generated files
+app/src/css
+app/src/js/script.min.js
+
 # Build app
 dist
  
