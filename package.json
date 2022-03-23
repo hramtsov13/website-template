@@ -7,11 +7,10 @@
   "license": "ISC",
   "scripts": {
     "start": "gulp",
-    "build": "gulp build",
-    "watch": "gulp watch"
+    "build": "gulp build"
   },
-  "directories": {
-    "doc": "docs"
+  "engines": {
+    "node": ">=16.0.0"
   },
   "type": "module",
   "devDependencies": {
