@@ -15,29 +15,37 @@ import del from 'del';
 
 const paths = {
   css: {
-    src: 'app/src/scss/*.scss',
-    dest: 'app/dist/css',
+    src: 'app/src/scss/**/*.scss',
+    concat: 'style.min.css',
+    devDist: 'app/src/css',
+    dist: 'dist/css',
   },
   js: {
-    src: 'app/src/js/*.js',
-    dest: 'app/dist/js',
+    src: 'app/src/js/!(script.min.js)',
+    concat: 'script.min.js',
+    devDist: 'app/src/js',
+    dist: 'dist/js',
   },
   html: {
     src: 'app/*.html',
-    dest: 'app/dist/html',
+    dist: 'dist',
   },
   img: {
     src: 'app/src/img/*[.png,.jpg,.svg]',
-    dest: 'app/dist/img',
+    dist: 'dist/img',
+  },
+  fonts: {
+    src: 'app/fonts/**/*',
+    dist: 'dist/fonts',
   },
 };
 
-//compile
+// Compile
 const compileScript = () => {
   return gulp
-    .src(['app/src/js/script.js'])
+    .src(paths.js.src)
     .pipe(sourcemaps.init())
-    .pipe(concat('script.min.js'))
+    .pipe(concat(paths.js.concat))
     .pipe(
       babel({
         presets: ['@babel/preset-env'],
@@ -45,7 +53,7 @@ const compileScript = () => {
     )
     .pipe(uglify())
     .pipe(sourcemaps.write())
-    .pipe(gulp.dest('app/src/js'))
+    .pipe(gulp.dest(paths.js.devDist))
     .pipe(browserSync.stream());
 };
 
@@ -54,23 +62,20 @@ const compileStyle = () => {
   var plugins = [autoprefixer(), cssnano()];
 
   return gulp
-    .src(['app/src/scss/styles.scss'])
+    .src(paths.css.src)
     .pipe(sourcemaps.init())
     .pipe(sass())
     .on('error', sass.logError)
     .pipe(postcss(plugins))
-    .pipe(concat('style.min.css'))
+    .pipe(concat(paths.css.concat))
     .pipe(sourcemaps.write())
-    .pipe(gulp.dest('app/src/css'))
+    .pipe(gulp.dest(paths.css.devDist))
     .pipe(browserSync.stream());
 };
 
-const compileImages = () =>
-  gulp.src(paths.img.src).pipe(imagemin()).pipe(gulp.dest(paths.img.dest).pipe(browserSync.stream()));
+const compile = gulp.parallel(compileScript, compileStyle);
 
-const compile = gulp.parallel(compileScript, compileStyle, compileImages);
-
-//Watch relodaings
+// Serve
 const startServer = (done) => {
   browserSync.init({
     server: {
@@ -87,54 +92,54 @@ const reload = (done) => {
   done();
 };
 
-//Serve
 const serve = gulp.series(compile, startServer);
 
+// Watch
 const watchMarkup = (done) => {
-  gulp.watch('app/*.html', gulp.series(reload));
+  gulp.watch(paths.html.src, gulp.series(reload));
   done();
 };
 
 const watchScript = (done) => {
-  gulp.watch('app/src/js/script.js', gulp.series(compileScript));
+  gulp.watch(paths.js.src, gulp.series(compileScript));
   done();
 };
 
 const watchStyle = (done) => {
-  gulp.watch('app/src/scss/*.scss', gulp.series(compileStyle));
+  gulp.watch(paths.css.src, gulp.series(compileStyle));
   done();
 };
 
 const watch = gulp.parallel(watchMarkup, watchScript, watchStyle);
 const defaultTasks = gulp.parallel(serve, watch);
 
-//build
+// Build
 const buildMarkup = () => {
-  return gulp.src('app/*.html').pipe(gulp.dest('dist'));
+  return gulp.src(paths.html.src).pipe(gulp.dest(paths.html.dist));
 };
 
 const buildScript = () => {
-  return gulp.src(['app/src/js/script.js']).pipe(gulp.dest('dist/js'));
+  return gulp.src(paths.js.devDist).pipe(gulp.dest(paths.js.dist));
 };
 
 const buildStyle = () => {
-  return gulp.src(['app/src/scss/styles.scss']).pipe(gulp.dest('dist/css'));
+  return gulp.src(paths.css.devDist).pipe(gulp.dest(paths.css.dist));
 };
 
 const buildFonts = () => {
-  return gulp.src(['app/src/fonts/**/*']).pipe(gulp.dest('dist/fonts'));
+  return gulp.src(paths.fonts.src).pipe(gulp.dest(paths.fonts.dist));
 };
 
 const buildImage = () => {
-  return gulp.src(['app/src/img/**/*']).pipe(gulp.dest('dist/img'));
+  return gulp.src(paths.img.src).pipe(imagemin()).pipe(gulp.dest(paths.img.dist));
 };
 
-const removeDocs = () => {
-  return del('docs');
+const removeDist = () => {
+  return del('dist');
 };
 
 const build = gulp.series(
-  removeDocs,
+  removeDist,
   compile,
   gulp.parallel(buildMarkup, buildScript, buildStyle, buildFonts, buildImage)
 );
