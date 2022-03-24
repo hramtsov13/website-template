@@ -1,19 +1,12 @@
-
-# VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-*.code-workspace
-# Local History for Visual Studio Code
-.history/
- 
-# Private Node Modules
+# Node Modules
 node_modules/
  
 # Mac/OSX
 .DS_Store
+
+# Generated files
+app/src/css
+app/src/js/script.min.js
 
 # Build app
 dist

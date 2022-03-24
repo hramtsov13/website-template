@@ -7,28 +7,27 @@
   "license": "ISC",
   "scripts": {
     "start": "gulp",
-    "build": "gulp",
-    "watch": "gulp watch"
+    "build": "gulp build"
   },
-  "directories": {
-    "doc": "docs"
+  "engines": {
+    "node": ">=16.0.0"
   },
   "type": "module",
   "devDependencies": {
-    "@babel/core": "^7.16.0",
-    "@babel/preset-env": "^7.16.0",
-    "autoprefixer": "^10.4.0",
-    "browser-sync": "^2.27.7",
-    "cssnano": "^5.0.10",
-    "del": "^5.1.0",
+    "@babel/core": "^7.17.8",
+    "@babel/preset-env": "^7.16.11",
+    "autoprefixer": "^10.4.4",
+    "browser-sync": "^2.27.9",
+    "cssnano": "^5.1.5",
+    "del": "^6.0.0",
     "gulp": "^4.0.2",
     "gulp-babel": "^8.0.0",
     "gulp-concat": "^2.6.1",
     "gulp-imagemin": "^8.0.0",
     "gulp-postcss": "^9.0.1",
-    "gulp-sass": "^5.0.0",
+    "gulp-sass": "^5.1.0",
     "gulp-sourcemaps": "^3.0.0",
     "gulp-uglify": "^3.0.2",
-    "sass": "^1.43.4"
+    "sass": "^1.49.9"
   }
 }
