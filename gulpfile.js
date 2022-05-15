@@ -13,47 +13,39 @@ import cssnano from 'cssnano';
 import browserSync from 'browser-sync';
 import del from 'del';
 
-const paths = {
-  css: {
-    src: 'app/src/scss/**/*.scss',
-    concat: 'style.min.css',
-    devDist: 'app/src/css',
-    dist: 'dist/css',
-  },
-  js: {
-    src: 'app/src/js/!(script.min.js)',
-    concat: 'script.min.js',
-    devDist: 'app/src/js',
-    dist: 'dist/js',
-  },
-  html: {
-    src: 'app/*.html',
-    dist: 'dist',
-  },
-  img: {
-    src: 'app/src/img/*[.png,.jpg,.svg]',
-    dist: 'dist/img',
-  },
-  fonts: {
-    src: 'app/fonts/**/*',
-    dist: 'dist/fonts',
-  },
-};
+// const paths = {
+//   css: {
+//     src: 'app/src/scss/*.scss',
+//     dest: 'app/dist/css',
+//   },
+//   js: {
+//     src: 'app/src/js/*.js',
+//     dest: 'app/dist/js',
+//   },
+//   html: {
+//     src: 'app/*.html',
+//     dest: 'app/dist/html',
+//   },
+//   img: {
+//     src: 'app/src/img/**/*',
+//     dest: 'app/dist/img',
+//   },
+// };
 
-// Compile
+//compile
 const compileScript = () => {
   return gulp
-    .src(paths.js.src)
+    .src(['app/src/js/script.js'])
     .pipe(sourcemaps.init())
-    .pipe(concat(paths.js.concat))
+    .pipe(concat('script.min.js'))
     .pipe(
       babel({
-        presets: ['@babel/preset-env'],
+        plugins: ['@babel/plugin-transform-runtime'],
       })
     )
     .pipe(uglify())
     .pipe(sourcemaps.write())
-    .pipe(gulp.dest(paths.js.devDist))
+    .pipe(gulp.dest('app/src/js'))
     .pipe(browserSync.stream());
 };
 
@@ -62,20 +54,23 @@ const compileStyle = () => {
   var plugins = [autoprefixer(), cssnano()];
 
   return gulp
-    .src(paths.css.src)
+    .src(['app/src/libs/normalize.min.css', 'app/src/scss/styles.scss'])
     .pipe(sourcemaps.init())
     .pipe(sass())
     .on('error', sass.logError)
     .pipe(postcss(plugins))
-    .pipe(concat(paths.css.concat))
+    .pipe(concat('style.min.css'))
     .pipe(sourcemaps.write())
-    .pipe(gulp.dest(paths.css.devDist))
+    .pipe(gulp.dest('app/src/css'))
     .pipe(browserSync.stream());
 };
 
-const compile = gulp.parallel(compileScript, compileStyle);
+const compileImages = () =>
+  gulp.src(['app/src/img/**/*']).pipe(imagemin()).pipe(gulp.dest('app/src/img/**/*').pipe(browserSync.stream()));
 
-// Serve
+const compile = gulp.parallel(compileScript, compileStyle, compileImages);
+
+//Watch reloading
 const startServer = (done) => {
   browserSync.init({
     server: {
@@ -92,56 +87,60 @@ const reload = (done) => {
   done();
 };
 
+//Serve
 const serve = gulp.series(compile, startServer);
 
-// Watch
 const watchMarkup = (done) => {
-  gulp.watch(paths.html.src, gulp.series(reload));
+  gulp.watch('app/*.html', gulp.series(reload));
   done();
 };
 
 const watchScript = (done) => {
-  gulp.watch(paths.js.src, gulp.series(compileScript));
+  gulp.watch('app/src/js/script.js', gulp.series(compileScript));
   done();
 };
 
 const watchStyle = (done) => {
-  gulp.watch(paths.css.src, gulp.series(compileStyle));
+  gulp.watch('app/src/scss/*.scss', gulp.series(compileStyle));
   done();
 };
 
 const watch = gulp.parallel(watchMarkup, watchScript, watchStyle);
 const defaultTasks = gulp.parallel(serve, watch);
 
-// Build
+//build
 const buildMarkup = () => {
-  return gulp.src(paths.html.src).pipe(gulp.dest(paths.html.dist));
+  return gulp.src('app/*.html').pipe(gulp.dest('dist'));
 };
 
 const buildScript = () => {
-  return gulp.src(paths.js.devDist).pipe(gulp.dest(paths.js.dist));
+  return gulp.src(['app/src/js/script.min.js']).pipe(gulp.dest('dist/src/js'));
 };
 
 const buildStyle = () => {
-  return gulp.src(paths.css.devDist).pipe(gulp.dest(paths.css.dist));
+  return gulp.src(['app/src/css/style.min.css']).pipe(gulp.dest('dist/src/css'));
 };
 
 const buildFonts = () => {
-  return gulp.src(paths.fonts.src).pipe(gulp.dest(paths.fonts.dist));
+  return gulp.src(['app/src/fonts/**/*']).pipe(gulp.dest('dist/src/fonts'));
+};
+
+const buildPlugins = () => {
+  return gulp.src(['app/src/plugins/**/*']).pipe(gulp.dest('dist/src/plugins'));
 };
 
 const buildImage = () => {
-  return gulp.src(paths.img.src).pipe(imagemin()).pipe(gulp.dest(paths.img.dist));
+  return gulp.src(['app/src/img/**/*']).pipe(gulp.dest('dist/src/img'));
 };
 
-const removeDist = () => {
+const removeDocs = () => {
   return del('dist');
 };
 
 const build = gulp.series(
-  removeDist,
+  removeDocs,
   compile,
-  gulp.parallel(buildMarkup, buildScript, buildStyle, buildFonts, buildImage)
+  gulp.parallel(buildMarkup, buildScript, buildStyle, buildFonts, buildPlugins, buildImage)
 );
 
 gulp.task('build', build);
