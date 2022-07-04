@@ -13,24 +13,24 @@ import cssnano from 'cssnano';
 import browserSync from 'browser-sync';
 import del from 'del';
 
-// const paths = {
-//   css: {
-//     src: 'app/src/scss/*.scss',
-//     dest: 'app/dist/css',
-//   },
-//   js: {
-//     src: 'app/src/js/*.js',
-//     dest: 'app/dist/js',
-//   },
-//   html: {
-//     src: 'app/*.html',
-//     dest: 'app/dist/html',
-//   },
-//   img: {
-//     src: 'app/src/img/**/*',
-//     dest: 'app/dist/img',
-//   },
-// };
+const paths = {
+  css: {
+    src: 'app/src/scss/*.scss',
+    dest: 'app/dist/css',
+  },
+  js: {
+    src: 'app/src/js/*.js',
+    dest: 'app/dist/js',
+  },
+  html: {
+    src: 'app/*.html',
+    dest: 'app/dist/html',
+  },
+  img: {
+    src: 'app/src/img/*[.png,.jpg,.svg,.jpeg]',
+    dest: 'app/dist/img',
+  },
+};
 
 //compile
 const compileScript = () => {
@@ -40,7 +40,7 @@ const compileScript = () => {
     .pipe(concat('script.min.js'))
     .pipe(
       babel({
-        plugins: ['@babel/plugin-transform-runtime'],
+        presets: ['@babel/preset-env'],
       })
     )
     .pipe(uglify())
@@ -54,7 +54,7 @@ const compileStyle = () => {
   var plugins = [autoprefixer(), cssnano()];
 
   return gulp
-    .src(['app/src/libs/normalize.min.css', 'app/src/scss/styles.scss'])
+    .src(['app/src/scss/styles.scss'])
     .pipe(sourcemaps.init())
     .pipe(sass())
     .on('error', sass.logError)
@@ -66,11 +66,11 @@ const compileStyle = () => {
 };
 
 const compileImages = () =>
-  gulp.src(['app/src/img/**/*']).pipe(imagemin()).pipe(gulp.dest('app/src/img/**/*').pipe(browserSync.stream()));
+  gulp.src(paths.img.src).pipe(imagemin()).pipe(gulp.dest(paths.img.dest).pipe(browserSync.stream()));
 
 const compile = gulp.parallel(compileScript, compileStyle, compileImages);
 
-//Watch reloading
+//Watch relodaings
 const startServer = (done) => {
   browserSync.init({
     server: {
@@ -121,27 +121,15 @@ const buildStyle = () => {
   return gulp.src(['app/src/css/style.min.css']).pipe(gulp.dest('dist/src/css'));
 };
 
-const buildFonts = () => {
-  return gulp.src(['app/src/fonts/**/*']).pipe(gulp.dest('dist/src/fonts'));
-};
-
-const buildPlugins = () => {
-  return gulp.src(['app/src/plugins/**/*']).pipe(gulp.dest('dist/src/plugins'));
-};
-
-const buildImage = () => {
-  return gulp.src(['app/src/img/**/*']).pipe(gulp.dest('dist/src/img'));
+const buildAssets = () => {
+  return gulp.src(['app/src/assets/**/**/*']).pipe(gulp.dest('dist/src/assets'));
 };
 
 const removeDocs = () => {
   return del('dist');
 };
 
-const build = gulp.series(
-  removeDocs,
-  compile,
-  gulp.parallel(buildMarkup, buildScript, buildStyle, buildFonts, buildPlugins, buildImage)
-);
+const build = gulp.series(removeDocs, compile, gulp.parallel(buildMarkup, buildScript, buildStyle, buildAssets));
 
 gulp.task('build', build);
 gulp.task('default', defaultTasks);
